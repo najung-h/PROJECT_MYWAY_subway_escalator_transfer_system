@@ -1,0 +1,67 @@
+# GitHub Actions Workflow - Ruff 자동수정 버전 (조건 제거 안정판)
+# PR이 master/dev에 열리면 실행:
+# 1) Ruff로 코드 검사 + 자동수정 (--fix, format)
+# 2) 수정된 결과를 PR 브랜치에 커밋/푸시
+# => 항상 포맷팅된 코드로 리뷰 가능
+
+name: ci
+
+on:
+  pull_request:                # PR 생성/업데이트 시 실행
+    branches: [ master, dev ]  # master, dev 브랜치 대상
+
+# PR 브랜치로 커밋/푸시하려면 write 권한 필요
+permissions:
+  contents: write
+
+jobs:
+  # -------------------------------------------------
+  # Ruff Auto Fix Job (파이썬 의존성 불필요 → 언제나 실행)
+  # -------------------------------------------------
+  ruff-fix:
+    name: ci/ruff-auto-fix
+    runs-on: ubuntu-latest
+
+    steps:
+      # (1) 레포지토리 코드 체크아웃
+      - uses: actions/checkout@v4
+        with:
+          # GitHub 기본 토큰 사용 → 이 토큰으로 PR 브랜치에 push 가능
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      # (2) Python 환경 세팅
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      # (3) Ruff 설치
+      - name: Install ruff
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff
+
+      # (4) Ruff 실행 - 자동수정 모드
+      - name: Run Ruff (fix + format)
+        run: |
+          # 린트 규칙 위반 자동 수정
+          ruff check --fix .
+          # Black 스타일 포맷팅 적용
+          ruff format .
+
+      # (5) 수정된 결과를 PR 브랜치에 커밋/푸시
+      - name: Commit and push changes
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add .
+          git commit -m "chore: auto-fix code style with ruff" || echo "No changes to commit"
+          git push
+
+  # -------------------------------------------------
+  # (선택) Frontend ESLint - Node 프로젝트가 있을 때만 실행
+  #  - 아래 if는 GitHub Expressions이므로 ${{ }} 로 감싸야 함.
+  # -------------------------------------------------
+  lint-frontend:
+    name: ci/lint-frontend
+    runs-on: ubu
