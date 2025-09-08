@@ -1,0 +1,37 @@
+# Node.js / Python 공통
+node_modules
+npm-debug.log
+yarn-error.log
+__pycache__/
+*.pyc
+*.pyo
+
+# 환경 변수 / 설정
+.env
+*.env
+.DS_Store
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Docker 관련
+.dockerignore
+Dockerfile*
+
+# IDE / OS
+.vscode
+.idea
+*.swp
+*.swo
+*.swn
+*.bak
+Thumbs.db
+
+# 로그 / 캐시
+*.log
+.cache/
+coverage/
+dist/
+build/
